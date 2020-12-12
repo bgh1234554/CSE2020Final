@@ -35,7 +35,9 @@ public class HighScoreScreen extends Screen {
 
 		try {
 			this.highScores = Core.getFileManager().loadHighScores();
-		} catch (NumberFormatException | IOException e) {
+		} catch (NumberFormatException e){
+			logger.warning("Number Format Exception!");
+		} catch (IOException e) {
 			logger.warning("Couldn't load high scores!");
 		}
 	}
@@ -61,15 +63,6 @@ public class HighScoreScreen extends Screen {
 		if (inputManager.isKeyDown(KeyEvent.VK_SPACE)
 				&& this.inputDelay.checkFinished())
 			this.isRunning = false;
-		try {
-			if (inputManager.isKeyDown(KeyEvent.VK_ENTER) && this.inputDelay.checkFinished()) {
-				Core.getFileManager().initializeScore(Core.getFileManager().loadHighScores());
-				this.highScores = Core.getFileManager().loadHighScores();
-				System.out.println("Initialize Score");
-			}
-		} catch (NumberFormatException | IOException e) {
-			logger.warning("Couldn't load high scores!");
-		}
 	}
 
 	/**

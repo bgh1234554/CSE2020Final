@@ -16,6 +16,8 @@ import screen.Screen;
 import entity.Entity;
 import entity.Ship;
 
+import static engine.Core.difficulty;
+
 /**
  * Manages screen drawing.
  * 
@@ -233,18 +235,14 @@ public final class DrawManager {
 	 * 
 	 * @param screen
 	 *            Screen to draw on.
-	 * @param p1Score
-	 * @param p2Score
+	 * @param score
 	 *            Current score.
 	 */
-	public void drawScore(final Screen screen, final int p1Score, final int p2Score) {
+	public void drawScore(final Screen screen, final int score) {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.setColor(Color.WHITE);
-		String p1ScoreString = String.format("%04d", p1Score);
-		backBufferGraphics.drawString(p1ScoreString, screen.getWidth() - 120, 25);
-
-		String p2ScoreString = String.format("%04d", p2Score);
-		backBufferGraphics.drawString(p2ScoreString, screen.getWidth() - 60, 25);
+		String scoreString = String.format("%04d", score);
+		backBufferGraphics.drawString(scoreString, screen.getWidth() - 60, 25);
 	}
 
 	/**
@@ -259,7 +257,7 @@ public final class DrawManager {
 		backBufferGraphics.setFont(fontRegular);
 		backBufferGraphics.setColor(Color.WHITE);
 		backBufferGraphics.drawString(Integer.toString(lives), 20, 25);
-		Ship dummyShip = new Ship(0, 0, Color.BLUE);
+		Ship dummyShip = new Ship(0, 0);
 		for (int i = 0; i < lives; i++)
 			drawEntity(dummyShip, 40 + 35 * i, 10);
 	}
@@ -336,8 +334,7 @@ public final class DrawManager {
 	 * 
 	 * @param screen
 	 *            Screen to draw on.
-	 * @param p1Score
-	 * @param p2Score
+	 * @param score
 	 *            Score obtained.
 	 * @param livesRemaining
 	 *            Lives remaining when finished.
@@ -348,11 +345,10 @@ public final class DrawManager {
 	 * @param isNewRecord
 	 *            If the score is a new high score.
 	 */
-	public void drawResults(final Screen screen, final int p1Score, final int p2Score,
+	public void drawResults(final Screen screen, final int score,
 			final int livesRemaining, final int shipsDestroyed,
 			final float accuracy, final boolean isNewRecord) {
-		String p1ScoreString = String.format("P1 score %04d", p1Score);
-		String p2ScoreString = String.format("P2 score %04d", p2Score);
+		String scoreString = String.format("score %04d", score);
 		String livesRemainingString = "lives remaining " + livesRemaining;
 		String shipsDestroyedString = "enemies destroyed " + shipsDestroyed;
 		String accuracyString = String
@@ -361,19 +357,16 @@ public final class DrawManager {
 		int height = isNewRecord ? 4 : 2;
 
 		backBufferGraphics.setColor(Color.WHITE);
-		drawCenteredRegularString(screen, p1ScoreString, screen.getHeight()
+		drawCenteredRegularString(screen, scoreString, screen.getHeight()
 				/ height);
-		drawCenteredRegularString(screen, p2ScoreString, screen.getHeight()
-				/ height + fontRegularMetrics.getHeight()
-				* 2);
 		drawCenteredRegularString(screen, livesRemainingString,
 				screen.getHeight() / height + fontRegularMetrics.getHeight()
-						* 4);
+						* 2);
 		drawCenteredRegularString(screen, shipsDestroyedString,
 				screen.getHeight() / height + fontRegularMetrics.getHeight()
-						* 6);
+						* 4);
 		drawCenteredRegularString(screen, accuracyString, screen.getHeight()
-				/ height + fontRegularMetrics.getHeight() * 8);
+				/ height + fontRegularMetrics.getHeight() * 6);
 	}
 
 	/**
@@ -464,7 +457,6 @@ public final class DrawManager {
 	public void drawHighScoreMenu(final Screen screen) {
 		String highScoreString = "High Scores";
 		String instructionsString = "Press Space to return";
-		String initializeScoreString = "Press Enter to Initialize Score";
 
 		backBufferGraphics.setColor(Color.GREEN);
 		drawCenteredBigString(screen, highScoreString, screen.getHeight() / 8);
@@ -472,11 +464,6 @@ public final class DrawManager {
 		backBufferGraphics.setColor(Color.GRAY);
 		drawCenteredRegularString(screen, instructionsString,
 				screen.getHeight() / 5);
-
-		backBufferGraphics.setColor(Color.GRAY);
-		drawCenteredRegularString(screen, initializeScoreString,
-				screen.getHeight() / 3
-						* 2 + fontRegularMetrics.getHeight() * 4);
 	}
 
 	/**
@@ -494,11 +481,16 @@ public final class DrawManager {
 		String scoreString = "";
 
 		for (Score score : highScores) {
-			scoreString = String.format("%s        %04d", score.getName(),
-					score.getScore());
-			drawCenteredRegularString(screen, scoreString, screen.getHeight()
-					/ 4 + fontRegularMetrics.getHeight() * (i + 1) * 2);
-			i++;
+			if(score.getDifficulty()==difficulty) {
+				scoreString = String.format("%s        %04d", score.getName(),
+						score.getScore());
+				drawCenteredRegularString(screen, scoreString, screen.getHeight()
+						/ 4 + fontRegularMetrics.getHeight() * (i + 1) * 2);
+				i++;
+				if(i==7){
+					break;
+				}
+			}
 		}
 	}
 

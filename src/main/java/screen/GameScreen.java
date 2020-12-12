@@ -1,6 +1,5 @@
 package screen;
 
-import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.util.HashSet;
 import java.util.Set;
@@ -16,11 +15,13 @@ import entity.EnemyShipFormation;
 import entity.Entity;
 import entity.Ship;
 
+import static engine.Core.difficulty;
+
 /**
  * Implements the game screen, where the action happens.
- *
+ * 
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
- *
+ * 
  */
 public class GameScreen extends Screen {
 
@@ -46,8 +47,7 @@ public class GameScreen extends Screen {
 	/** Formation of enemy ships. */
 	private EnemyShipFormation enemyShipFormation;
 	/** Player's ship. */
-	private Ship ship1;
-	private Ship ship2;
+	private Ship ship;
 	/** Bonus enemy ship that appears sometimes. */
 	private EnemyShip enemyShipSpecial;
 	/** Minimum time between bonus ship appearances. */
@@ -59,8 +59,7 @@ public class GameScreen extends Screen {
 	/** Set of all bullets fired by on screen ships. */
 	private Set<Bullet> bullets;
 	/** Current score. */
-	private int p1Score;
-	private int p2Score;
+	private int score;
 	/** Player lives left. */
 	private int lives;
 	/** Total bullets shot by the player. */
@@ -74,16 +73,14 @@ public class GameScreen extends Screen {
 	/** Checks if a bonus life is received. */
 	private boolean bonusLife;
 
-	private static boolean pause = false;
-
 	/**
 	 * Constructor, establishes the properties of the screen.
-	 *
+	 * 
 	 * @param gameState
 	 *            Current game state.
 	 * @param gameSettings
 	 *            Current game settings.
-	 * @param bonnusLife
+	 * @param bonusLife
 	 *            Checks if a bonus life is awarded this level.
 	 * @param width
 	 *            Screen width.
@@ -93,15 +90,14 @@ public class GameScreen extends Screen {
 	 *            Frames per second, frame rate at which the game is run.
 	 */
 	public GameScreen(final GameState gameState,
-					  final GameSettings gameSettings, final boolean bonusLife,
-					  final int width, final int height, final int fps) {
+			final GameSettings gameSettings, final boolean bonusLife,
+			final int width, final int height, final int fps) {
 		super(width, height, fps);
 
 		this.gameSettings = gameSettings;
 		this.bonusLife = bonusLife;
 		this.level = gameState.getLevel();
-		this.p1Score = gameState.getp1Score();
-		this.p2Score = gameState.getp2Score();
+		this.score = gameState.getScore();
 		this.lives = gameState.getLivesRemaining();
 		if (this.bonusLife)
 			this.lives++;
@@ -117,8 +113,7 @@ public class GameScreen extends Screen {
 
 		enemyShipFormation = new EnemyShipFormation(this.gameSettings);
 		enemyShipFormation.attach(this);
-		this.ship1 = new Ship(this.width / 3, this.height - 30, Color.BLUE);
-		this.ship2 = new Ship(this.width - (this.width / 3), this.height - 30, Color.RED);
+		this.ship = new Ship(this.width / 2, this.height - 30);
 		// Appears each 10-30 seconds.
 		this.enemyShipSpecialCooldown = Core.getVariableCooldown(
 				BONUS_SHIP_INTERVAL, BONUS_SHIP_VARIANCE);
@@ -136,16 +131,14 @@ public class GameScreen extends Screen {
 
 	/**
 	 * Starts the action.
-	 *
+	 * 
 	 * @return Next screen code.
 	 */
 	public final int run() {
 		super.run();
 
-		this.p1Score += LIFE_SCORE * (this.lives);
-		this.p2Score += LIFE_SCORE * (this.lives);
-		this.logger.info("Screen cleared with a score of " + this.p1Score);
-		this.logger.info("Screen cleared with a score of " + this.p2Score);
+		this.score += LIFE_SCORE * (this.lives - 1);
+		this.logger.info("Screen cleared with a score of " + this.score);
 
 		return this.returnCode;
 	}
@@ -157,57 +150,26 @@ public class GameScreen extends Screen {
 		super.update();
 
 		if (this.inputDelay.checkFinished() && !this.levelFinished) {
-			if(inputManager.isKeyDown(KeyEvent.VK_ESCAPE) && this.inputDelay.checkFinished()) {
-				pause = true;
-				System.out.println("Pause Game");
-			}
-			while(pause) {
-				try {
-					Thread.sleep(100);
-					if(inputManager.isKeyDown(KeyEvent.VK_F1)) {
-						pause = false;
-						System.out.println("Game Start");
-					}
-				} catch(InterruptedException e){}
-			}
 
-			if (!this.ship1.isDestroyed()) {
-				boolean ship1moveRight = inputManager.isKeyDown(KeyEvent.VK_D);
-				boolean ship1moveLeft = inputManager.isKeyDown(KeyEvent.VK_A);
+			if (!this.ship.isDestroyed()) {
+				boolean moveRight = inputManager.isKeyDown(KeyEvent.VK_RIGHT)
+						|| inputManager.isKeyDown(KeyEvent.VK_D);
+				boolean moveLeft = inputManager.isKeyDown(KeyEvent.VK_LEFT)
+						|| inputManager.isKeyDown(KeyEvent.VK_A);
 
-				boolean ship1isRightBorder = this.ship1.getPositionX()
-						+ this.ship1.getWidth() + this.ship1.getSpeed() > this.width - 1;
-				boolean ship1isLeftBorder = this.ship1.getPositionX()
-						- this.ship1.getSpeed() < 1;
+				boolean isRightBorder = this.ship.getPositionX()
+						+ this.ship.getWidth() + this.ship.getSpeed() > this.width - 1;
+				boolean isLeftBorder = this.ship.getPositionX()
+						- this.ship.getSpeed() < 1;
 
-				if (ship1moveRight && !ship1isRightBorder) {
-					this.ship1.moveRight();
+				if (moveRight && !isRightBorder) {
+					this.ship.moveRight();
 				}
-				if (ship1moveLeft && !ship1isLeftBorder) {
-					this.ship1.moveLeft();
+				if (moveLeft && !isLeftBorder) {
+					this.ship.moveLeft();
 				}
 				if (inputManager.isKeyDown(KeyEvent.VK_SPACE))
-					if (this.ship1.shoot(this.bullets, 1))
-						this.bulletsShot++;
-			}
-
-			if(!this.ship2.isDestroyed()){
-				boolean ship2moveRight = inputManager.isKeyDown(KeyEvent.VK_RIGHT);
-				boolean ship2moveLeft = inputManager.isKeyDown(KeyEvent.VK_LEFT);
-
-				boolean ship2isRightBorder = this.ship2.getPositionX()
-						+ this.ship2.getWidth() + this.ship2.getSpeed() > this.width - 1;
-				boolean ship2isLeftBorder = this.ship2.getPositionX()
-						- this.ship2.getSpeed() < 1;
-
-				if (ship2moveRight && !ship2isRightBorder) {
-					this.ship2.moveRight();
-				}
-				if (ship2moveLeft && !ship2isLeftBorder) {
-					this.ship2.moveLeft();
-				}
-				if (inputManager.isKeyDown(KeyEvent.VK_COMMA))
-					if (this.ship2.shoot(this.bullets, 2))
+					if (this.ship.shoot(this.bullets))
 						this.bulletsShot++;
 			}
 
@@ -230,8 +192,7 @@ public class GameScreen extends Screen {
 				this.logger.info("The special ship has escaped");
 			}
 
-			this.ship1.update();
-			this.ship2.update();
+			this.ship.update();
 			this.enemyShipFormation.update();
 			this.enemyShipFormation.shoot(this.bullets);
 		}
@@ -257,10 +218,8 @@ public class GameScreen extends Screen {
 	private void draw() {
 		drawManager.initDrawing(this);
 
-		drawManager.drawEntity(this.ship1, this.ship1.getPositionX(),
-				this.ship1.getPositionY());
-		drawManager.drawEntity(this.ship2, this.ship2.getPositionX(),
-				this.ship2.getPositionY());
+		drawManager.drawEntity(this.ship, this.ship.getPositionX(),
+				this.ship.getPositionY());
 		if (this.enemyShipSpecial != null)
 			drawManager.drawEntity(this.enemyShipSpecial,
 					this.enemyShipSpecial.getPositionX(),
@@ -273,7 +232,7 @@ public class GameScreen extends Screen {
 					bullet.getPositionY());
 
 		// Interface.
-		drawManager.drawScore(this, this.p1Score, this.p2Score);
+		drawManager.drawScore(this, this.score);
 		drawManager.drawLives(this, this.lives);
 		drawManager.drawHorizontalLine(this, SEPARATION_LINE_HEIGHT - 1);
 
@@ -281,8 +240,8 @@ public class GameScreen extends Screen {
 		if (!this.inputDelay.checkFinished()) {
 			int countdown = (int) ((INPUT_DELAY
 					- (System.currentTimeMillis()
-					- this.gameStartTime)) / 1000);
-			drawManager.drawCountDown(this, this.level, countdown,
+							- this.gameStartTime)) / 1000);
+			drawManager.drawCountDown(this, this.level-difficulty, countdown,
 					this.bonusLife);
 			drawManager.drawHorizontalLine(this, this.height / 2 - this.height
 					/ 12);
@@ -315,19 +274,10 @@ public class GameScreen extends Screen {
 		Set<Bullet> recyclable = new HashSet<Bullet>();
 		for (Bullet bullet : this.bullets)
 			if (bullet.getSpeed() > 0) {
-				if (checkCollision(bullet, this.ship1) && !this.levelFinished) {
+				if (checkCollision(bullet, this.ship) && !this.levelFinished) {
 					recyclable.add(bullet);
-					if (!this.ship1.isDestroyed()) {
-						this.ship1.destroy();
-						this.lives--;
-						this.logger.info("Hit on player ship, " + this.lives
-								+ " lives remaining.");
-					}
-				}
-				if (checkCollision(bullet, this.ship2) && !this.levelFinished) {
-					recyclable.add(bullet);
-					if (!this.ship2.isDestroyed()) {
-						this.ship2.destroy();
+					if (!this.ship.isDestroyed()) {
+						this.ship.destroy();
 						this.lives--;
 						this.logger.info("Hit on player ship, " + this.lives
 								+ " lives remaining.");
@@ -337,12 +287,7 @@ public class GameScreen extends Screen {
 				for (EnemyShip enemyShip : this.enemyShipFormation)
 					if (!enemyShip.isDestroyed()
 							&& checkCollision(bullet, enemyShip)) {
-						if(bullet.getShipnum() == 1){
-							this.p1Score += enemyShip.getPointValue();
-						}
-						else{
-							this.p2Score += enemyShip.getPointValue();
-						}
+						this.score += enemyShip.getPointValue();
 						this.shipsDestroyed++;
 						this.enemyShipFormation.destroy(enemyShip);
 						recyclable.add(bullet);
@@ -350,8 +295,7 @@ public class GameScreen extends Screen {
 				if (this.enemyShipSpecial != null
 						&& !this.enemyShipSpecial.isDestroyed()
 						&& checkCollision(bullet, this.enemyShipSpecial)) {
-					this.p1Score += this.enemyShipSpecial.getPointValue();
-					this.p2Score += this.enemyShipSpecial.getPointValue();
+					this.score += this.enemyShipSpecial.getPointValue();
 					this.shipsDestroyed++;
 					this.enemyShipSpecial.destroy();
 					this.enemyShipSpecialExplosionCooldown.reset();
@@ -364,7 +308,7 @@ public class GameScreen extends Screen {
 
 	/**
 	 * Checks if two entities are colliding.
-	 *
+	 * 
 	 * @param a
 	 *            First entity, the bullet.
 	 * @param b
@@ -389,11 +333,11 @@ public class GameScreen extends Screen {
 
 	/**
 	 * Returns a GameState object representing the status of the game.
-	 *
+	 * 
 	 * @return Current game state.
 	 */
 	public final GameState getGameState() {
-		return new GameState(this.level, this.p1Score, this.p2Score, this.lives,
+		return new GameState(this.level, this.score, this.lives,
 				this.bulletsShot, this.shipsDestroyed);
 	}
 }
