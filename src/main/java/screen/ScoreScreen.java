@@ -10,8 +10,6 @@ import engine.Core;
 import engine.GameState;
 import engine.Score;
 
-import static engine.Core.difficulty;
-
 /**
  * Implements the score screen.
  * 
@@ -23,14 +21,15 @@ public class ScoreScreen extends Screen {
 	/** Milliseconds between changes in user selection. */
 	private static final int SELECTION_TIME = 200;
 	/** Maximum number of high scores. */
-	private static final int MAX_HIGH_SCORE_NUM = 21;
+	private static final int MAX_HIGH_SCORE_NUM = 7;
 	/** Code of first mayus character. */
 	private static final int FIRST_CHAR = 65;
 	/** Code of last mayus character. */
 	private static final int LAST_CHAR = 90;
 
 	/** Current score. */
-	private int score;
+	private int p1Score;
+	private int p2Score;
 	/** Player lives left. */
 	private int livesRemaining;
 	/** Total bullets shot by the player. */
@@ -64,7 +63,8 @@ public class ScoreScreen extends Screen {
 			final GameState gameState) {
 		super(width, height, fps);
 
-		this.score = gameState.getScore();
+		this.p1Score = gameState.getp1Score();
+		this.p2Score = gameState.getp2Score();
 		this.livesRemaining = gameState.getLivesRemaining();
 		this.bulletsShot = gameState.getBulletsShot();
 		this.shipsDestroyed = gameState.getShipsDestroyed();
@@ -78,8 +78,10 @@ public class ScoreScreen extends Screen {
 			this.highScores = Core.getFileManager().loadHighScores();
 			if (highScores.size() < MAX_HIGH_SCORE_NUM
 					|| highScores.get(highScores.size() - 1).getScore()
-					< this.score)
+					< this.p1Score || highScores.get(highScores.size() - 1).getScore()
+					< this.p2Score)
 				this.isNewRecord = true;
+
 		} catch (IOException e) {
 			logger.warning("Couldn't load high scores!");
 		}
@@ -152,16 +154,20 @@ public class ScoreScreen extends Screen {
 	 * Saves the score as a high score.
 	 */
 	private void saveScore() {
-		highScores.add(new Score(new String(this.name), score, difficulty));
-		Collections.sort(highScores);
-		if (highScores.size() > MAX_HIGH_SCORE_NUM) {
-			highScores.remove(highScores.size() - 1);
+		if(this.p1Score > this.p2Score){
+			highScores.add(new Score(new String(this.name), p1Score));
 		}
+		else{
+			highScores.add(new Score(new String(this.name), p2Score));
+		}
+		Collections.sort(highScores);
+		if (highScores.size() > MAX_HIGH_SCORE_NUM)
+			highScores.remove(highScores.size() - 1);
+
 		try {
 			Core.getFileManager().saveHighScores(highScores);
 		} catch (IOException e) {
-			e.printStackTrace();
-			logger.warning("Couldn't load high scores in save!");
+			logger.warning("Couldn't load high scores!");
 		}
 	}
 
@@ -173,7 +179,7 @@ public class ScoreScreen extends Screen {
 
 		drawManager.drawGameOver(this, this.inputDelay.checkFinished(),
 				this.isNewRecord);
-		drawManager.drawResults(this, this.score, this.livesRemaining,
+		drawManager.drawResults(this, this.p1Score, this.p2Score ,this.livesRemaining,
 				this.shipsDestroyed, (float) this.shipsDestroyed
 						/ this.bulletsShot, this.isNewRecord);
 
