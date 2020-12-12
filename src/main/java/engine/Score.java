@@ -22,7 +22,7 @@ public class Score implements Comparable<Score> {
 	 * @param score
 	 *            Player score.
 	 */
-	public Score(final String name, final int score, final int difficulty) {
+	public Score(final String name, final int score) {
 		this.name = name;
 		this.score = score;
 		this.difficulty = difficulty;
@@ -46,9 +46,7 @@ public class Score implements Comparable<Score> {
 		return this.score;
 	}
 
-	public final int getDifficulty() {
-		return this.difficulty;
-	}
+	public final int getDifficulty() {return this.difficulty; }
 	/**
 	 * Orders the scores descending by score.
 	 * 

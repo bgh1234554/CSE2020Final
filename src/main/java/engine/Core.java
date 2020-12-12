@@ -5,7 +5,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Scanner;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -117,9 +116,7 @@ public final class Core implements ActionListener {
 		int width = frame.getWidth();
 		int height = frame.getHeight();
 
-		//여기서 core을 불러와서 difficulty를 세팅해야겠다.
 		gameSettings = new ArrayList<GameSettings>();
-		// switch (difficulty) { 0 (1~7), 1 (2~8), 2(3~9)}
 		gameSettings.add(SETTINGS_LEVEL_1);
 		gameSettings.add(SETTINGS_LEVEL_2);
 		gameSettings.add(SETTINGS_LEVEL_3);
@@ -135,7 +132,7 @@ public final class Core implements ActionListener {
 		Core core = new Core();
 		int returnCode = 1;
 		do {
-			gameState = new GameState(1+difficulty, 0, MAX_LIVES, 0, 0);
+			gameState = new GameState(1+difficulty, 0, 0,MAX_LIVES, 0, 0);
 			switch(difficulty){
 				case 1:
 					LOGGER.info("Chosen Difficulty: MEDIUM");
@@ -175,7 +172,8 @@ public final class Core implements ActionListener {
 					gameState = ((GameScreen) currentScreen).getGameState();
 
 					gameState = new GameState(gameState.getLevel() + 1,
-							gameState.getScore(),
+							gameState.getp1Score(),
+							gameState.getp2Score(),
 							gameState.getLivesRemaining(),
 							gameState.getBulletsShot(),
 							gameState.getShipsDestroyed());
@@ -185,7 +183,8 @@ public final class Core implements ActionListener {
 
 				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
 						+ " score screen at " + FPS + " fps, with a score of "
-						+ gameState.getScore() + ", "
+						+ gameState.getp1Score() + ", "
+						+ gameState.getp2Score() + ", "
 						+ gameState.getLivesRemaining() + " lives remaining, "
 						+ gameState.getBulletsShot() + " bullets shot and "
 						+ gameState.getShipsDestroyed() + " ships destroyed.");
@@ -211,6 +210,7 @@ public final class Core implements ActionListener {
 		fileHandler.close();
 		System.exit(0);
 	}
+
 	/**
 	 * Constructor, not called.
 	 */
