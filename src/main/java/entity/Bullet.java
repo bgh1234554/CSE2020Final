@@ -18,8 +18,6 @@ public class Bullet extends Entity {
 	 */
 	private int speed;
 
-	private int shipnum;
-
 	/**
 	 * Constructor, establishes the bullet's properties.
 	 * 
@@ -31,11 +29,10 @@ public class Bullet extends Entity {
 	 *            Speed of the bullet, positive or negative depending on
 	 *            direction - positive is down.
 	 */
-	public Bullet(final int positionX, final int positionY, final int speed, final int shipnum) {
+	public Bullet(final int positionX, final int positionY, final int speed) {
 		super(positionX, positionY, 3 * 2, 5 * 2, Color.WHITE);
 
 		this.speed = speed;
-		this.shipnum = shipnum;
 		setSprite();
 	}
 
@@ -66,8 +63,6 @@ public class Bullet extends Entity {
 		this.speed = speed;
 	}
 
-	public final void setShipnum(final int shipnum){this.shipnum = shipnum;}
-
 	/**
 	 * Getter for the speed of the bullet.
 	 * 
@@ -75,9 +70,5 @@ public class Bullet extends Entity {
 	 */
 	public final int getSpeed() {
 		return this.speed;
-	}
-
-	public final int getShipnum() {
-		return this.shipnum;
 	}
 }

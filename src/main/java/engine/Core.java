@@ -1,7 +1,11 @@
 package engine;
 
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.logging.ConsoleHandler;
 import java.util.logging.FileHandler;
 import java.util.logging.Handler;
@@ -14,13 +18,16 @@ import screen.ScoreScreen;
 import screen.Screen;
 import screen.TitleScreen;
 
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+
 /**
  * Implements core game logic.
  * 
  * @author <a href="mailto:RobertoIA1987@gmail.com">Roberto Izquierdo Amo</a>
  * 
  */
-public final class Core {
+public final class Core implements ActionListener {
 
 	/** Width of current screen. */
 	private static final int WIDTH = 448;
@@ -57,7 +64,13 @@ public final class Core {
 	/** Difficulty settings for level 7. */
 	private static final GameSettings SETTINGS_LEVEL_7 =
 			new GameSettings(8, 7, 2, 500);
-	
+	/** Difficulty settings for level 8. (available on normal, hard) **/
+	private static final GameSettings SETTINGS_LEVEL_8 =
+			new GameSettings(8, 8, 2, 500);
+	/** Difficulty settings for level 9. (available on hard) **/
+	private static final GameSettings SETTINGS_LEVEL_9 =
+			new GameSettings(9, 8, 2, 500);
+
 	/** Frame to draw the screen on. */
 	private static Frame frame;
 	/** Screen currently shown. */
@@ -71,7 +84,8 @@ public final class Core {
 	private static Handler fileHandler;
 	/** Logger handler for printing to console. */
 	private static ConsoleHandler consoleHandler;
-
+	/** Easy=0, Normal=1, Hard=2 */
+	public static int difficulty = 0;
 
 	/**
 	 * Test implementation.
@@ -103,7 +117,9 @@ public final class Core {
 		int width = frame.getWidth();
 		int height = frame.getHeight();
 
+		//여기서 core을 불러와서 difficulty를 세팅해야겠다.
 		gameSettings = new ArrayList<GameSettings>();
+		// switch (difficulty) { 0 (1~7), 1 (2~8), 2(3~9)}
 		gameSettings.add(SETTINGS_LEVEL_1);
 		gameSettings.add(SETTINGS_LEVEL_2);
 		gameSettings.add(SETTINGS_LEVEL_3);
@@ -111,13 +127,26 @@ public final class Core {
 		gameSettings.add(SETTINGS_LEVEL_5);
 		gameSettings.add(SETTINGS_LEVEL_6);
 		gameSettings.add(SETTINGS_LEVEL_7);
-		
+		gameSettings.add(SETTINGS_LEVEL_8); //only available on difficulties above normal
+		gameSettings.add(SETTINGS_LEVEL_9); //only available on hard difficulty
 		GameState gameState;
 
+		/* calling core method, opening JFrame to select difficulties*/
+		Core core = new Core();
 		int returnCode = 1;
 		do {
-			gameState = new GameState(1, 0, 0,MAX_LIVES, 0, 0);
-
+			gameState = new GameState(1+difficulty, 0, MAX_LIVES, 0, 0);
+			switch(difficulty){
+				case 1:
+					LOGGER.info("Chosen Difficulty: MEDIUM");
+					break;
+				case 2:
+					LOGGER.info("Chosen Difficulty: HARD");
+					break;
+				default:
+					LOGGER.info("Chosen Difficulty: EASY");
+					break;
+			}
 			switch (returnCode) {
 			case 1:
 				// Main menu.
@@ -146,8 +175,7 @@ public final class Core {
 					gameState = ((GameScreen) currentScreen).getGameState();
 
 					gameState = new GameState(gameState.getLevel() + 1,
-							gameState.getp1Score(),
-							gameState.getp2Score(),
+							gameState.getScore(),
 							gameState.getLivesRemaining(),
 							gameState.getBulletsShot(),
 							gameState.getShipsDestroyed());
@@ -157,8 +185,7 @@ public final class Core {
 
 				LOGGER.info("Starting " + WIDTH + "x" + HEIGHT
 						+ " score screen at " + FPS + " fps, with a score of "
-						+ gameState.getp1Score() + ", "
-						+ gameState.getp2Score() + ", "
+						+ gameState.getScore() + ", "
 						+ gameState.getLivesRemaining() + " lives remaining, "
 						+ gameState.getBulletsShot() + " bullets shot and "
 						+ gameState.getShipsDestroyed() + " ships destroyed.");
@@ -184,12 +211,44 @@ public final class Core {
 		fileHandler.close();
 		System.exit(0);
 	}
-
 	/**
 	 * Constructor, not called.
 	 */
-	private Core() {
+	JFrame Jframe = new JFrame();
+	JPanel panel = new JPanel();
+	JComboBox<String> check_box = new JComboBox<String>();
+	JButton buyButton = new JButton("선택");
+	private static Font fontRegular;
 
+	private Core() {
+		panel.setLayout(null);
+//Label position setting
+		panel.setFont(fontRegular);
+		panel.setBorder(new TitledBorder("Difficulties"));
+		panel.setBounds(380,80,490,280);
+		panel.setLayout(null);
+
+		check_box.addItem("Easy");
+		check_box.addItem("Medium");
+		check_box.addItem("Hard");
+		check_box.setBounds(60,40,70,30);
+		check_box.addActionListener(check_box);
+
+		buyButton.setBounds(150,40,60,35);
+		buyButton.addActionListener(this);
+
+//adding labels to panel
+		panel.add(check_box);
+		panel.add(buyButton);
+//attach panel in frame
+		Jframe.add(panel);
+//setting frame
+		Jframe.setTitle("Select difficulty");
+		Jframe.setSize(320,130);
+		Jframe.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+		Jframe.setVisible(true);
+
+		check_box.addActionListener(check_box);
 	}
 
 	/**
@@ -251,5 +310,13 @@ public final class Core {
 	public static Cooldown getVariableCooldown(final int milliseconds,
 			final int variance) {
 		return new Cooldown(milliseconds, variance);
+	}
+
+	@Override
+	public void actionPerformed(ActionEvent e) {
+		if(e.getSource()==buyButton) {
+			difficulty = check_box.getSelectedIndex();
+			JOptionPane.showMessageDialog(null, "선택한 난이도: "+check_box.getSelectedItem(),"메시지", JOptionPane.WARNING_MESSAGE);
+		}
 	}
 }

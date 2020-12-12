@@ -1,5 +1,10 @@
 package engine;
 
+import javax.swing.*;
+import javax.swing.border.TitledBorder;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+
 /**
  * Implements an object that stores the state of the game between levels.
  * 
@@ -11,23 +16,19 @@ public class GameState {
 	/** Current game level. */
 	private int level;
 	/** Current score. */
-	private int p1Score;
-	private int p2Score;
+	private int score;
 	/** Lives currently remaining. */
 	private int livesRemaining;
 	/** Bullets shot until now. */
 	private int bulletsShot;
 	/** Ships destroyed until now. */
 	private int shipsDestroyed;
-
 	/**
 	 * Constructor.
 	 * 
 	 * @param level
 	 *            Current game level.
-	 * @param p1Score
-	 *
-	 * @param p2Score
+	 * @param score
 	 *            Current score.
 	 * @param livesRemaining
 	 *            Lives currently remaining.
@@ -36,12 +37,11 @@ public class GameState {
 	 * @param shipsDestroyed
 	 *            Ships destroyed until now.
 	 */
-	public GameState(final int level, final int p1Score, final int p2Score,
+	public GameState(final int level, final int score,
 			final int livesRemaining, final int bulletsShot,
 			final int shipsDestroyed) {
 		this.level = level;
-		this.p1Score = p1Score;
-		this.p2Score = p2Score;
+		this.score = score;
 		this.livesRemaining = livesRemaining;
 		this.bulletsShot = bulletsShot;
 		this.shipsDestroyed = shipsDestroyed;
@@ -53,16 +53,11 @@ public class GameState {
 	public final int getLevel() {
 		return level;
 	}
-
 	/**
 	 * @return the score
 	 */
-	public final int getp1Score() {
-		return p1Score;
-	}
-
-	public final int getp2Score() {
-		return p2Score;
+	public final int getScore() {
+		return score;
 	}
 
 	/**
